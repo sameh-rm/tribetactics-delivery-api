@@ -1,3 +1,5 @@
+from sqlalchemy.orm import relationship
+from project.app.resturants.models import Resturant
 from project.app.extensions import db
 from sqlalchemy import Column, String, Integer
 
@@ -9,10 +11,6 @@ class User(db.Model):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     role_id = Column(Integer, db.ForeignKey("role.id"), nullable=False)
-    role = db.relationship(
-        "Role", uselist=False, back_populates="user",)
-    foodMenu = db.relationship(
-        "FoodMenu", uselist=False, back_populates="user",)
 
     def __init__(self, name, email, username, password, role_id):
         self.name = name
@@ -47,11 +45,6 @@ class User(db.Model):
         return '<User %r>' % self.name
 
 
-@db.event.listens_for(User, "after_insert")
-def after_insert(mapper, connection, target):
-    pass
-
-
 class Role(db.Model):
     id = Column(Integer, primary_key=True)
     title = Column(String, unique=True, nullable=False)
@@ -72,6 +65,10 @@ class Role(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    @property
+    def permissions(self):
+        return [perm.permission.title for perm in self.permissions_list]
 
     def format(self, with_users):
         formated_role = {
@@ -110,6 +107,10 @@ class Permission(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @property
+    def permissions(self):
+        return [perm.permission.title for perm in self.permissions_list]
+
     def format(self):
         return {
             'id': self.id,
@@ -125,11 +126,11 @@ class RolePermissions(db.Model):
     id = Column(Integer, primary_key=True)
     role_id = Column(Integer, db.ForeignKey("role.id"), nullable=False)
     role = db.relationship('Role',
-                           backref=db.backref('permissions', lazy=True))
+                           backref=db.backref('permissions_list', lazy=True))
     permission_id = Column(Integer, db.ForeignKey(
         "permission.id"), nullable=False)
     permission = db.relationship('Permission',
-                                 backref=db.backref('permissions', lazy=True))
+                                 backref=db.backref('permissions_list', lazy=True))
 
     def __init__(self, role, permission):
         self.role = role
@@ -155,4 +156,4 @@ class RolePermissions(db.Model):
         }
 
     def __repr__(self):
-        return '<Role %r Permission %r>' % self.role.title, self.permission.title
+        return f'<Role {self.role.title} Permission {self.permission.title}>'

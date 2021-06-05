@@ -16,11 +16,10 @@ class Order(db.Model):
     status = Column(Boolean,  nullable=False, default=False)
     user = db.relationship('User',
                            backref=db.backref('orders', lazy=True))
+    user_id = Column(Integer, db.ForeignKey("user.id"), nullable=False)
 
     shippingInfo_id = Column(Integer, db.ForeignKey(
         "shippinginfo.id"), nullable=False)
-    shippingInfo = db.relationship(
-        "ShippingInfo", uselist=False, back_populates="orders",)
     shippingCost = Column(Float,
                           nullable=False, default=0)
 

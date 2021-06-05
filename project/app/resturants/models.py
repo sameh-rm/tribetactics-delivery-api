@@ -13,7 +13,8 @@ class Resturant(db.Model):
     user = db.relationship('User',
                            backref=db.backref('resturant', lazy=True))
     foodMenu = db.relationship(
-        "FoodMenu", uselist=False, back_populates="resturant",)
+        "FoodMenu", uselist=False, backref=db.backref('resturant', lazy=True))
+    user_id = Column(Integer, db.ForeignKey("user.id"), nullable=False)
 
     def __init__(self, title, description, brand,  user, menuTitle="", menuDescription=""):
         self.title = title
@@ -52,19 +53,18 @@ class Resturant(db.Model):
 class FoodMenu(db.Model):
     __tablename__ = "foodMenu"
     id = Column(Integer, primary_key=True)
-    title = Column(Integer, db.ForeignKey("role.id"), nullable=False)
-    description = db.relationship('Role',
-                                  backref=db.backref('permissions', lazy=True))
-    resturant = db.relationship(
-        "Resturant", uselist=False, back_populates="foodMenu",)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    resturant_id = Column(Integer, db.ForeignKey(
+        "resturant.id"), nullable=False)
 
     items = db.relationship('FoodItem',
                             backref=db.backref('menu', lazy=True))
 
-    def __init__(self, title, description, resturant):
+    def __init__(self, title, description, resturant_id):
         self.title = title
         self.description = description
-        self.resturant = resturant
+        self.resturant_id = resturant_id
 
     def insert(self):
         db.session.add(self)
@@ -95,9 +95,7 @@ class FoodItem(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     price = Column(Float, nullable=False, default=0)
-    menu = Column(Integer, db.ForeignKey("foodMenu.id"), nullable=False)
-    menu = db.relationship(
-        "Resturant", uselist=False, back_populates="foodMenu",)
+    menu_id = Column(Integer, db.ForeignKey("foodMenu.id"), nullable=False)
 
     def __init__(self, title, description, resturant):
         self.title = title

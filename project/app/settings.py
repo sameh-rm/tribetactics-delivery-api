@@ -7,7 +7,10 @@ DEBUG = True
 
 load_dotenv()
 
-
-SQLALCHEMY_DATABASE_URI = getenv("DB_URI")
+uri = "postgresql://{}:{}@{}/{}".format(
+    'postgres', 'postgres', 'localhost:5432', "tribetactics")
+# SQLALCHEMY_DATABASE_URI = getenv("DB_URI")
+SQLALCHEMY_DATABASE_URI = uri
 SECRET_KEY = getenv("SECRET_KEY")
 SQLALCHEMY_TRACK_MODIFICATIONS = True
+RECORDS_PER_PAGE = 10
