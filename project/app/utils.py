@@ -5,8 +5,8 @@ from requests.models import PreparedRequest
 from functools import wraps
 from flask import request
 import json
-from project.app.models import User
-from project.app.settings import SECRET_KEY, ACCESS_TOKEN
+from project.app.users.models import User
+from project.app.settings import SECRET_KEY
 
 algorithm = "HS256"
 
@@ -42,17 +42,3 @@ def token_required(f):
             return {"message": "Token is invalid or expired", "success": False}, 403
         return f(*args, **kwargs)
     return decorated
-
-
-def bitly_shorten(to_url):
-    import requests
-    headers = {
-        'Authorization': f'Bearer {ACCESS_TOKEN}',
-        'Content-Type': 'application/json',
-    }
-
-    data = {"long_url": to_url, "domain": "bit.ly"}
-
-    response = requests.post(
-        'https://api-ssl.bitly.com/v4/shorten', headers=headers, data=json.dumps(data))
-    return response.json(), response.status_code

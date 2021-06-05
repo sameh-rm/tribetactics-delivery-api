@@ -1,8 +1,9 @@
-from flask_pymongo import PyMongo
+from flask_sqlalchemy import SQLAlchemy
+
 from flask_restplus import Api
 # from flask_marshmallow import Marshmallow
 
-mongo = PyMongo()
+db = SQLAlchemy()
 api = Api(
     title='Shorty Api',
     version='1.0',

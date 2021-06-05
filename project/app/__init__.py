@@ -1,11 +1,15 @@
+from project.app.orders.models import Order
+from project.app.resturants.models import Resturant
+from project.app.users.models import User
 from werkzeug.exceptions import HTTPException
+from flask_migrate import Migrate
 from flask import (
     Flask,  request, abort, redirect
 )
 from flask_cors import CORS
 from .users.api import api as users_ns
 from .extensions import (
-    mongo,
+    db,
     api
 )
 
@@ -18,18 +22,22 @@ def create_app(db_uri=None, config_file="settings.py"):
     # INIT Extensions
     if db_uri:
         # use a custom uri
-        mongo.init_app(app, db_uri)
-    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
         # use the default MONGO_URI from settings.py
-        mongo.init_app(app)
+    db.app = app
+    db.init_app(app)
+
+    migrate = Migrate(app, db)
     api.init_app(app)
 
-    # NameSpaces
     api.add_namespace(users_ns, "/api/users")
 
     # error Handler
-
+    @app.route("/")
+    def index():
+        return "works"
     # adding cors headers
+
     @app.after_request
     def after_request(response):
         response.headers.add(
@@ -41,16 +49,6 @@ def create_app(db_uri=None, config_file="settings.py"):
             "GET,POST,PUT,PATCH,DELETE,OPTIONS"
         )
         return response
-
-    @app.route("/<path:path>")
-    def get_local_shortned_urls(path):
-        urls_collection = mongo.db.urls
-        shortned_url = urls_collection.find_one({"from_url": path})
-        if not shortned_url:
-            abort(404, "URL NOT FOUND")
-        else:
-            # we might render a redirect template
-            return redirect(shortned_url["to_url"], 302)
 
     @app.errorhandler(HTTPException)
     def handle_bad_request(e):
